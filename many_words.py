@@ -2,10 +2,11 @@ import csv
 import random
 import hashlib
 import os
+import sys
 from datetime import datetime, timedelta
+from os.path import expanduser
 
-BUILD = "0.4"
-SETDIR_PATH = "./sets"
+BUILD = "0.5"
 
 class ManyWords:
     SECONDS_PER_WORD = 15
@@ -27,14 +28,20 @@ class ManyWords:
         trimmedList = ManyWords.trimEntries(wordList)
         duplicates = ManyWords.findDuplicates(trimmedList)
         if (len(duplicates) > 0 ):
-            raise Exception("Set contains duplicates [" + " / ".join(duplicates) + "]")   
+            raise ValueError("Set contains duplicates [" + " / ".join(duplicates) + "]")   
+        if(len(trimmedList) == 0 ):
+            raise ValueError("Set is empty") 
         self.wordList = trimmedList
 
     @staticmethod 
     def trimEntries(wordList):
         trimmedList = []
+        line = 1
         for word in wordList:
+            if (len(word) != len(ManyWords.FIELDS)): 
+                raise ValueError(f'Missing field(s) in row {line} of file {str(word)}')
             trimmedList.append(list(map(str.strip, word)))
+            line += 1
         return trimmedList
 
     @staticmethod 
@@ -140,16 +147,32 @@ class Utils:
         else:
             return '%s%ds' % (sign_string, seconds)
 
+DOCDIR = "Documents"
+SETDIR = "ManyWords"
 
 def selectSetFile():
+    home  = expanduser("~")
+    path = os.path.join(home, DOCDIR,SETDIR)
+    print (f'\nSearching for study sets in {path}')
+    
+    try:
+        files = os.listdir(path)
+    except FileNotFoundError:
+        print("\nError: Set directory not found ") 
+        exit()
+
+    if (len(files) == 0 ):
+        print("\nError: No study sets in set directory")
+        exit()
+        
+
     print("\nAvailable study sets")
-    files = os.listdir(SETDIR_PATH)
     index = 0
     for f in files:
         print(f'\t{index}. {f}')
         index += 1
     selection = int(input('Select study set: '))
-    setFile = SETDIR_PATH + "/" + files[selection]
+    setFile = os.path.join(path, files[selection])
     return setFile
 
 def loadSetFile(setFile):
@@ -158,19 +181,24 @@ def loadSetFile(setFile):
     reader = csv.reader(f)
     for row in reader:
         wordList.append(row)
-    #trainList = trainList[1::]  # csv no longer contains a header row
     return wordList
 
 def main():
     print(f'-- ManyWords {BUILD} --')
     setFile = selectSetFile()
     wordList = loadSetFile(setFile)
-    m = ManyWords(wordList)
+   
+    try:
+        m = ManyWords(wordList)
+    except ValueError as e:
+        print("Error: "+ str(e))
+        exit()
+   
     m.study()
+
+def exit():
+    input("\nPress [ENTER] to exit")
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
-
-
-
-       
