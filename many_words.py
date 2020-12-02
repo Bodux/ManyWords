@@ -24,8 +24,8 @@ class ManyWords:
     }
     assert (FIELD_LABELS.keys() == set(FIELDS))
 
-    def __init__(self, wordList):
-        trimmedList = ManyWords.trimEntries(wordList)
+    def __init__(self, word_list):
+        trimmedList = ManyWords.trimEntries(word_list)
         duplicates = ManyWords.findDuplicates(trimmedList)
         if (len(duplicates) > 0 ):
             raise ValueError("Set contains duplicates [" + " / ".join(duplicates) + "]")   
@@ -34,10 +34,10 @@ class ManyWords:
         self.wordList = trimmedList
 
     @staticmethod 
-    def trimEntries(wordList):
+    def trimEntries(word_list):
         trimmedList = []
         line = 1
-        for word in wordList:
+        for word in word_list:
             if (len(word) != len(ManyWords.FIELDS)): 
                 raise ValueError(f'Missing field(s) in row {line} of file {str(word)}')
             trimmedList.append(list(map(str.strip, word)))
@@ -45,10 +45,10 @@ class ManyWords:
         return trimmedList
 
     @staticmethod 
-    def findDuplicates(wordList):
+    def findDuplicates(word_list):
         seen = set()
         duplicates = set()
-        for word in wordList:
+        for word in word_list:
             germanGF = word[0]
             if germanGF not in seen:
                 seen.add(germanGF)
@@ -84,20 +84,20 @@ class ManyWords:
             return False
 
     def study(self):
-        trainSet = self.wordList
-        trainSetLength = len(trainSet)
-        trainDuration = trainSetLength * ManyWords.SECONDS_PER_WORD
-        trainEndTime = datetime.now() + timedelta(seconds = trainDuration)
+        train_set = self.wordList
+        set_length = len(train_set)
+        study_time = set_length * ManyWords.SECONDS_PER_WORD
+        study_end = datetime.now() + timedelta(seconds = study_time)
         doneList = []
         
-        print(f'\nStudy set contains {trainSetLength} words. Study time for this set is {Utils.pretty_time_delta(trainDuration)}')
-        learnedPercentage = 0
+        print(f'\nStudy set contains {set_length} words. Study time for this set is {Utils.pretty_time_delta(study_time)}')
+        learned_perc = 0
         counter = 1
-        remaining = (trainEndTime - datetime.now()).seconds
-        while (remaining > 0  and learnedPercentage < 100):
-            print(f'\nStep {counter} - {Utils.pretty_time_delta(remaining)} remaining ({learnedPercentage}% learned)')
+        remaining_time = (study_end - datetime.now()).seconds
+        while ((datetime.now() < study_end) and learned_perc < 100):
+            print(f'\nStep {counter} - {Utils.pretty_time_delta(remaining_time)} remaining ({learned_perc}% learned)')
             
-            word = random.choice(trainSet)
+            word = random.choice(train_set)
             word_d = dict(zip(ManyWords.FIELDS, word))
             
             correct_gf = ManyWords.testWord(word_d['DE GF']+':', word_d['FR GF'])
@@ -106,16 +106,18 @@ class ManyWords:
                 correct_conj = ManyWords.testWord(ManyWords.FIELD_LABELS[randomField], word_d[randomField])
                 if (correct_conj):
                     doneList.append(word)
-                    trainSet.remove(word)
+                    train_set.remove(word)
             
-            learnedPercentage = round((len(doneList) / trainSetLength)*100)
+            learned_perc = round((len(doneList) / set_length)*100)
             counter += 1
-            remaining = (trainEndTime - datetime.now()).seconds
+            remaining_time = (study_end - datetime.now()).seconds
 
-        if (learnedPercentage < 100):
-            print(f'\nTime is up. You have reached a learn rate of {learnedPercentage}% for this set.')
+        if (learned_perc < 100):
+            print(f'\nTime is up. You have reached a learn rate of {learned_perc}% for this set.')
         else:
-            print(f'\nYou have completed this set! (within {round((trainDuration - remaining)/trainDuration*100)}% of study time')
+            print(f'\nYou have reached 100% and completed this set!')
+
+        #add grade equivalent calculation, (doneSet -  mistakes) / trainSet *5 +1 
 
 
 class Utils:
@@ -156,7 +158,7 @@ def selectSetFile():
     try:
         files = os.listdir(path)
     except FileNotFoundError:
-        print("\nError: Set directory not found ") 
+        print("\nError: Set directory not found") 
         exit()
 
     csv_files = [a_file for a_file in files if str.endswith(a_file,"csv")]
