@@ -116,8 +116,7 @@ class ManyWords:
         if (learnedPercentage < 100):
             print(f'\nTime is up. You have reached a learn rate of {learnedPercentage}% for this set.')
         else:
-            print(f'\nYou have completed this set! (with {Utils.pretty_time_delta(remaining)} remaining)')
-        input("\nHit [ENTER] to close")
+            print(f'\nYou have completed this set!')
 
 
 class Utils:
@@ -152,7 +151,7 @@ SETDIR = "ManyWords"
 
 def selectSetFile():
     home  = expanduser("~")
-    path = os.path.join(home, DOCDIR,SETDIR)
+    path = os.path.join(home, DOCDIR, SETDIR)
     print (f'\nSearching for study sets in {path}')
     
     try:
@@ -161,18 +160,19 @@ def selectSetFile():
         print("\nError: Set directory not found ") 
         exit()
 
-    if (len(files) == 0 ):
-        print("\nError: No study sets in set directory")
+    csv_files = [a_file for a_file in files if str.endswith(a_file,"csv")]
+
+    if (len(csv_files) == 0 ):
+        print("\nError: No study set files in set directory")
         exit()
         
-
     print("\nAvailable study sets")
-    index = 0
-    for f in files:
+    index = 1
+    for f in csv_files:
         print(f'\t{index}. {f}')
         index += 1
     selection = int(input('Select study set: '))
-    setFile = os.path.join(path, files[selection])
+    setFile = os.path.join(path, files[selection-1])
     return setFile
 
 def loadSetFile(setFile):
@@ -184,7 +184,7 @@ def loadSetFile(setFile):
     return wordList
 
 def main():
-    print(f'-- ManyWords {BUILD} --')
+    print(f'--- ManyWords {BUILD} ---')
     setFile = selectSetFile()
     wordList = loadSetFile(setFile)
    
@@ -193,8 +193,8 @@ def main():
     except ValueError as e:
         print("Error: "+ str(e))
         exit()
-   
     m.study()
+    exit()
 
 def exit():
     input("\nPress [ENTER] to exit")
