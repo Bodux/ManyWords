@@ -67,7 +67,7 @@ class ManyWords:
             actual = input("Repeat: ")
     
     @staticmethod
-    def test(prompt, expected, retry=True):
+    def testWord(prompt, expected, retry=True):
         actual = input(f'{prompt} ')
         if (actual == expected):
             return True
@@ -77,7 +77,7 @@ class ManyWords:
             return False
         elif(retry and ManyWords.isClose(actual, expected)):
             print("Close... try again")
-            return ManyWords.test(prompt, expected, False)
+            return ManyWords.testWord(prompt, expected, False)
         else:
             print(f'Nope - correct answer: {expected}')
             ManyWords.retype(expected)
@@ -90,21 +90,20 @@ class ManyWords:
         trainEndTime = datetime.now() + timedelta(seconds = trainDuration)
         doneList = []
         
+        print(f'\nStudy set contains {trainSetLength} words. Study time for this set is {Utils.pretty_time_delta(trainDuration)}')
         learnedPercentage = 0
         counter = 1
         remaining = (trainEndTime - datetime.now()).seconds
-
-        print(f'\nStudy set contains {trainSetLength} words. Study time for this set is {Utils.pretty_time_delta(trainDuration)}')
         while (remaining > 0  and learnedPercentage < 100):
             print(f'\nStep {counter} - {Utils.pretty_time_delta(remaining)} remaining ({learnedPercentage}% learned)')
             
             word = random.choice(trainSet)
             word_d = dict(zip(ManyWords.FIELDS, word))
             
-            correct_gf = ManyWords.test(word_d['DE GF']+':', word_d['FR GF'])
+            correct_gf = ManyWords.testWord(word_d['DE GF']+':', word_d['FR GF'])
             if(correct_gf):
                 randomField = random.choice(ManyWords.FIELDS[2::])
-                correct_conj = ManyWords.test(ManyWords.FIELD_LABELS[randomField], word_d[randomField])
+                correct_conj = ManyWords.testWord(ManyWords.FIELD_LABELS[randomField], word_d[randomField])
                 if (correct_conj):
                     doneList.append(word)
                     trainSet.remove(word)
@@ -116,7 +115,7 @@ class ManyWords:
         if (learnedPercentage < 100):
             print(f'\nTime is up. You have reached a learn rate of {learnedPercentage}% for this set.')
         else:
-            print(f'\nYou have completed this set!')
+            print(f'\nYou have completed this set! (within {round((trainDuration - remaining)/trainDuration*100)}% of study time')
 
 
 class Utils:
